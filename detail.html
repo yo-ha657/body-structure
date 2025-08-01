@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>詳細表示</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1 id="page-title">読み込み中...</h1>
+  <div id="content-area"></div>
+  <p><a href="index.html">← トップへ戻る</a></p>
+  <script>
+    async function loadCSV() {
+      const response = await fetch('./data/laws.csv');
+      const text = await response.text();
+      const rows = text.trim().split('\n').slice(1);
+      return rows.map(row => {
+        const [category, subcategory, content] = row.split(',');
+        return { category, subcategory, content };
+      });
+    }
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    async function renderDetail() {
+      const category = getQueryParam('category');
+      const subcategory = getQueryParam('subcategory');
+
+      document.title = `${category} ${subcategory}`;
+      document.getElementById('page-title').textContent = `${category} ＞ ${subcategory}`;
+
+      const data = await loadCSV();
+      const match = data.find(d => d.category === category && d.subcategory === subcategory);
+      const contentArea = document.getElementById('content-area');
+      contentArea.innerHTML = match
+        ? `<p>${match.content}</p>`
+        : '<p>該当する条文が見つかりませんでした。</p>';
+    }
+
+    renderDetail();
+  </script>
+</body>
+</html>
